@@ -1,0 +1,116 @@
+import pandas as pd
+# Load the dataset
+df = pd.read_csv("C:/Users/Dell/Downloads/Statement_SES_2011-12-Enrlment.csv")
+# Display the first few rows of the dataframe to understand its structure
+df.head()
+
+#Grouping and Counting
+# Extract relevant columns and rename them for clarity
+class_columns = {
+    'All Categories - Class I-V - Total': 'Class I-V',
+    'All Categories - Class VI-VIII - Total': 'Class VI-VIII',
+    'All Categories - Class IX-X - Total': 'Class IX-X',
+    'All Categories - Class XI-XII - Total': 'Class XI-XII'
+}
+
+df_classes = df[class_columns.keys()].rename(columns=class_columns)
+
+# Sum the students across all years for each class
+class_counts = df_classes.sum()
+
+# Display the student counts for each class
+class_counts
+#Visualization
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Set the style for the plot
+sns.set(style="whitegrid")
+
+# Create the bar plot
+plt.figure(figsize=(10, 6))
+sns.barplot(x=class_counts.index, y=class_counts.values, palette="viridis")
+
+# Add labels and title
+plt.xlabel("Class")
+plt.ylabel("Number of Students")
+plt.title("Distribution of Students Across Classes")
+plt.xticks(rotation=45)
+
+# Show the plot
+plt.show()
+#Analysis and Interpretation
+#1. Line Chart: Trend of Student Numbers Over the Years
+import matplotlib.pyplot as plt
+
+# Extract year and relevant columns for plotting
+years = df['Year']
+df_yearly_classes = df[['Year'] + list(class_columns.keys())].rename(columns=class_columns)
+
+# Plotting the line chart
+plt.figure(figsize=(12, 8))
+for class_name in class_columns.values():
+    plt.plot(years, df_yearly_classes[class_name], label=class_name)
+
+# Add labels and title
+plt.xlabel("Year")
+plt.ylabel("Number of Students")
+plt.title("Trend of Student Numbers Over the Years by Class")
+plt.legend(title="Class")
+plt.xticks(rotation=45)
+
+# Show the plot
+plt.show()
+#2. Pie Chart: Proportion of Students in Each Class
+# Plotting the pie chart
+plt.figure(figsize=(8, 8))
+plt.pie(class_counts, labels=class_counts.index, autopct='%1.1f%%', colors=sns.color_palette("viridis", len(class_counts)))
+plt.title("Proportion of Students in Each Class")
+
+# Show the plot
+plt.show()
+
+# Sum the students across all years for each class and gender
+gender_counts = df_gender.sum().reset_index()
+gender_counts.columns = ['Class_Gender', 'Count']
+
+# Split the 'Class_Gender' column into separate 'Class' and 'Gender' columns
+gender_counts[['Class', 'Gender']] = gender_counts['Class_Gender'].str.split(' ', 1, expand=True)
+gender_counts = gender_counts.drop(columns=['Class_Gender'])
+
+# Plotting the stacked bar chart
+plt.figure(figsize=(12, 8))
+sns.barplot(x='Class', y='Count', hue='Gender', data=gender_counts, palette="viridis")
+
+# Add labels and title
+plt.xlabel("Class")
+plt.ylabel("Number of Students")
+plt.title("Comparison of Boys and Girls Across Different Classes")
+plt.legend(title="Gender")
+plt.xticks(rotation=45)
+
+# Show the plot
+plt.show()
+
+
+# Sum the students across all years for each class and gender
+gender_counts = df_gender.sum().reset_index()
+gender_counts.columns = ['Class_Gender', 'Count']
+
+# Split the 'Class_Gender' column into separate 'Class' and 'Gender' columns
+gender_counts[['Class', 'Gender']] = gender_counts['Class_Gender'].str.split(' ', 1, expand=True)
+gender_counts = gender_counts.drop(columns=['Class_Gender'])
+
+# Plotting the stacked bar chart
+plt.figure(figsize=(12, 8))
+sns.barplot(x='Class', y='Count', hue='Gender', data=gender_counts, palette="viridis")
+
+# Add labels and title
+plt.xlabel("Class")
+plt.ylabel("Number of Students")
+plt.title("Comparison of Boys and Girls Across Different Classes")
+plt.legend(title="Gender")
+plt.xticks(rotation=45)
+
+# Show the plot
+plt.show()
