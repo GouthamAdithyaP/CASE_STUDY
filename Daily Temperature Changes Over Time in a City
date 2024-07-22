@@ -1,175 +1,85 @@
-import pandas as pd
-# Load the CSV file
-data = pd.read_csv(r"C:\Users\Dell\Downloads\city_temperature.csv\city_temperature.csv")
-# Display the first few rows of the dataframe
-print(data.head())
-
-
-# Data Exploration
-print("\nDataset Info:")
-print(data.info())
-
-print("\nSummary Statistics:")
-print(data.describe())
-
-# Check for missing values
-missing_values = data.isnull().sum()
-print("\nMissing values in each column:")
-print(missing_values)
-
-# Check for outliers using boxplot
-plt.figure(figsize=(10, 6))
-sns.boxplot(data['AvgTemperature'])  # Using 'AvgTemperature' as the column name
-plt.title('Temperature Distribution with Outliers')
-plt.show()
-
-# Create a 'date' column from 'Year', 'Month', and 'Day'
-data['date'] = pd.to_datetime(data[['Year', 'Month', 'Day']])
-
-# Visualization
-plt.figure(figsize=(14, 8))
-plt.plot(data['date'], data['AvgTemperature'], marker='o', linestyle='-', color='b')  # Using 'AvgTemperature'
-plt.xlabel('Date')
-plt.ylabel('Temperature')
-plt.title('Temperature Time Series')
-plt.xticks(rotation=45)
-plt.grid(True)
-plt.show()
-
-# Analysis and Interpretation
-
-# Identify seasonal patterns using rolling mean
-data.set_index('date', inplace=True)
-data['rolling_mean'] = data['AvgTemperature'].rolling(window=365).mean()  # 365-day rolling mean for seasonal pattern
-
-plt.figure(figsize=(14, 8))
-plt.plot(data.index, data['AvgTemperature'], label='Temperature', color='blue', alpha=0.5)
-plt.plot(data.index, data['rolling_mean'], label='365-Day Rolling Mean', color='red', linewidth=2)
-plt.xlabel('Date')
-plt.ylabel('Temperature')
-plt.title('Temperature with 365-Day Rolling Mean')
-plt.legend()
-plt.grid(True)
-plt.show()
-
-# Analyze anomalies or significant fluctuations
-threshold = data['AvgTemperature'].mean() + 3 * data['AvgTemperature'].std()  # Example threshold for significant fluctuation
-anomalies = data[data['AvgTemperature'] > threshold]
-
-print("\nSignificant Temperature Fluctuations:")
-print(anomalies)
-
-# Draw conclusions
-print("\nConclusions:")
-print("1. The dataset shows a general trend/pattern in temperature changes over time.")
-print("2. The rolling mean plot helps in visualizing seasonal patterns.")
-print("3. Significant fluctuations in temperature were observed on specific dates, which could be due to extreme weather events or data anomalies.")
-
-# Save processed data to a new CSV file
-data.to_csv('/mnt/data/processed_temperature_data.csv')
-
-import pandas as pd
-import matplotlib.pyplot as plt
+import numpy as np # linear algebra
+import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
 import seaborn as sns
-# Data Preparation
-data['Day'] = data['Day'].replace(0, 1)  # Replace 0 days with 1
-data['Month'] = data['Month'].replace(0, 1)  # Replace 0 months with 1
+import matplotlib.pyplot as plt
+%matplotlib inline
 
-def is_valid_date(row):
-    try:
-        pd.to_datetime(f"{row['Year']}-{row['Month']}-{row['Day']}")
-        return True
-    except ValueError:
-        return False
+# Input data files are available in the read-only "../input/" directory
+# For example, running this (by clicking run or pressing Shift+Enter) will list all files under the input directory
 
-data = data[data.apply(is_valid_date, axis=1)]
-data['date'] = pd.to_datetime(data[['Year', 'Month', 'Day']])
-data.set_index('date', inplace=True)
+import os
+for dirname, _, filenames in os.walk(r"C:\Users\Dell\Downloads\city_temperature.csv\city_temperature.csv"):
+    # Your code here
 
-# Histogram of Temperatures
-plt.figure(figsize=(10, 6))
-sns.histplot(data['AvgTemperature'], bins=50, kde=True, color='skyblue')
-plt.title('Histogram of Average Temperatures')
-plt.xlabel('Temperature')
-plt.ylabel('Frequency')
+    for filename in filenames:
+        print(os.path.join(dirname, filename))
+
+df = pd.read_csv(r"C:\Users\Dell\Downloads\city_temperature.csv\city_temperature.csv")
+df.head()
+
+df.isna().sum()
+
+df = df.drop('State',axis=1)
+df.head()
+
+df.describe()
+df['Year'].unique()
+
+df.loc[df['Year']==200,'Year']=2000
+df.loc[df['Year']==201,'Year']=2010
+df.head()
+
+a= df.groupby(['Year','Region'])['AvgTemperature'].mean().reset_index().sort_values(by='AvgTemperature',ascending=False)
+a.head(20).style.background_gradient(cmap='Blues')
+
+plt.figure(figsize=(15,8))
+sns.lineplot(x='Year',y='AvgTemperature',hue='Region',data=a,palette='hsv')
+plt.grid()
+plt.title('YEAR-WISE AVERAGE MEAN TEMPERATURE OF DIFFERENT REGIONS')
 plt.show()
 
-# Monthly Average Temperature
-monthly_avg = data.groupby(data.index.month)['AvgTemperature'].mean()
-plt.figure(figsize=(10, 6))
-monthly_avg.plot(kind='line', marker='o', color='green')
-plt.title('Average Monthly Temperature')
-plt.xlabel('Month')
-plt.ylabel('Average Temperature')
-plt.grid(True)
+b= df.groupby(['Region','Month'])['AvgTemperature'].max().reset_index().sort_values(by='AvgTemperature',ascending=False)
+b.head(20).style.background_gradient(cmap='Oranges')
+
+plt.figure(figsize=(15,8))
+sns.barplot(x='Month', y= 'AvgTemperature',data=b,hue='Region',palette='hsv',saturation=.80)
+plt.title('VARIATION OF MAXIMUM TEMPERATURE OVER THE MONTHS')
 plt.show()
 
-# Yearly Average Temperature
-yearly_avg = data.groupby(data.index.year)['AvgTemperature'].mean()
-plt.figure(figsize=(10, 6))
-yearly_avg.plot(kind='line', marker='o', color='blue')
-plt.title('Average Yearly Temperature')
-plt.xlabel('Year')
-plt.ylabel('Average Temperature')
-plt.grid(True)
+c= df.groupby(['Region','Year'])['AvgTemperature'].max().reset_index().sort_values(by='AvgTemperature',ascending=False)
+c.head(20).style.background_gradient(cmap='Greens')
+
+plt.figure(figsize=(15,8))
+sns.scatterplot(x='Year',y='AvgTemperature',data=c,hue='Region',palette='hsv_r',style='Region')
+plt.title(' VARIATION OF MAXIMUM TEMPERATURE OVER THE YEARS')
 plt.show()
 
-# Monthly Temperature Distribution
-plt.figure(figsize=(12, 8))
-sns.boxplot(x=data.index.month, y=data['AvgTemperature'])
-plt.title('Monthly Temperature Distribution')
-plt.xlabel('Month')
-plt.ylabel('Temperature')
+c= df.groupby(['Country','City'])['AvgTemperature'].mean().reset_index().sort_values(by='AvgTemperature',ascending=False).head(20)
+c.style.background_gradient(cmap='Reds')
+
+plt.figure(figsize=(8,10))
+sns.barplot(x='AvgTemperature',y='City',data=c,palette='hsv_r')
+plt.title('VARIATION OF MEAN TEMPERATURE FOR TOP 20 COUNTRIES')
 plt.show()
 
-# Pie Chart of Data Availability by Year
-data_per_year = data['Year'].value_counts()
-plt.figure(figsize=(10, 6))
-data_per_year.plot(kind='pie', autopct='%1.1f%%', startangle=140, colormap='Pastel1')
-plt.title('Data Availability by Year')
-plt.ylabel('')
-plt.show()
+ind=df[df['Country']=='India']
+x= ind.groupby(['Year'])['AvgTemperature'].mean().reset_index().sort_values(by='AvgTemperature',ascending=False)
+x.style.background_gradient(cmap='hsv')
 
-# Rolling Mean Visualization (Seasonal Pattern)
-data['rolling_mean'] = data['AvgTemperature'].rolling(window=365).mean()
-plt.figure(figsize=(14, 8))
-plt.plot(data.index, data['AvgTemperature'], label='Temperature', color='blue', alpha=0.5)
-plt.plot(data.index, data['rolling_mean'], label='365-Day Rolling Mean', color='red', linewidth=2)
-plt.xlabel('Date')
-plt.ylabel('Temperature')
-plt.title('Temperature with 365-Day Rolling Mean')
-plt.legend()
-plt.grid(True)
-plt.show()
+mask1=df['Country']=='India'
+mask2=df['Year']==2020
 
-# Analysis of Anomalies or Significant Fluctuations
-threshold = data['AvgTemperature'].mean() + 3 * data['AvgTemperature'].std()
-anomalies = data[data['AvgTemperature'] > threshold]
-print("\nSignificant Temperature Fluctuations:")
-print(anomalies)
-
-# Save processed data to a new CSV file
-data.to_csv('/mnt/data/processed_temperature_data.csv')
+ind=df[mask1 & mask2 ]
 
 
-# Analysis of Anomalies or Significant Fluctuations
-threshold = data['AvgTemperature'].mean() + 3 * data['AvgTemperature'].std()
-anomalies = data[data['AvgTemperature'] > threshold]
-print("\nSignificant Temperature Fluctuations:")
-print(anomalies)
+k= ind.groupby(['Year','City','Month'])['AvgTemperature'].mean().reset_index().sort_values(by='AvgTemperature',ascending=False)
+k.style.background_gradient(cmap='Greens')
+
+mask1=df['Country']=='India'
+mask2=df['Year']==2020
+
+ind=df[mask1 & mask2 ]
 
 
-# Pie Chart of Data Availability by Year
-data_per_year = data['Year'].value_counts()
-plt.figure(figsize=(10, 6))
-data_per_year.plot(kind='pie', autopct='%1.1f%%', startangle=140, colormap='Pastel1')
-plt.title('Data Availability by Year')
-plt.ylabel('')
-plt.show()
-# Histogram of Temperatures
-plt.figure(figsize=(10, 6))
-sns.histplot(data['AvgTemperature'], bins=50, kde=True, color='skyblue')
-plt.title('Histogram of Average Temperatures')
-plt.xlabel('Temperature')
-plt.ylabel('Frequency')
-plt.show()
+k= ind.groupby(['Year','City','Month'])['AvgTemperature'].mean().reset_index().sort_values(by='AvgTemperature',ascending=False)
+k.style.background_gradient(cmap='Greens')
