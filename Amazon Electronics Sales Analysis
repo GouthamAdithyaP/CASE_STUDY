@@ -1,0 +1,100 @@
+import pandas as pd
+# Load the dataset
+df = pd.read_csv(r"C:\Users\Dell\Downloads\archive\amazon.csv")
+# Display the first few rows of the dataframe and basic info
+df.head(), df.info(), df.describe()
+
+# Data Cleaning
+# Remove currency symbols and convert to numeric
+df['discounted_price'] = df['discounted_price'].str.replace('₹', '').str.replace(',', '').astype(float)
+df['actual_price'] = df['actual_price'].str.replace('₹', '').str.replace(',', '').astype(float)
+df['discount_percentage'] = df['discount_percentage'].str.replace('%', '').astype(float)
+df['rating'] = pd.to_numeric(df['rating'], errors='coerce')
+df['rating_count'] = df['rating_count'].str.replace(',', '').astype(float)
+
+# Handle missing values
+df['rating_count'].fillna(0, inplace=True)
+
+# Verify the changes
+df.info(), df.head()
+#Sales Trend Analysis
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+
+# Add a synthetic date column for the purpose of analysis
+np.random.seed(0)
+df['date'] = pd.date_range(start='2022-01-01', periods=len(df), freq='D')
+
+# Group by month and calculate the total sales
+df['month'] = df['date'].dt.to_period('M')
+monthly_sales = df.groupby('month')['discounted_price'].sum()
+
+# Plot the sales trend
+plt.figure(figsize=(10, 6))
+monthly_sales.plot(kind='line')
+plt.title('Sales Trend Over Time')
+plt.xlabel('Month')
+plt.ylabel('Total Sales')
+plt.show()
+#Customer Rating Analysis
+# Distribution of ratings
+plt.figure(figsize=(10, 6))
+sns.histplot(df['rating'], bins=30, kde=True)
+plt.title('Distribution of Ratings')
+plt.xlabel('Rating')
+plt.ylabel('Frequency')
+plt.show()
+
+# Relationship between rating and discounted price
+plt.figure(figsize=(10, 6))
+sns.scatterplot(x=df['discounted_price'], y=df['rating'])
+plt.title('Rating vs Discounted Price')
+plt.xlabel('Discounted Price')
+plt.ylabel('Rating')
+plt.show()
+
+# Relationship between rating and discount percentage
+plt.figure(figsize=(10, 6))
+sns.scatterplot(x=df['discount_percentage'], y=df['rating'])
+plt.title('Rating vs Discount Percentage')
+plt.xlabel('Discount Percentage')
+plt.ylabel('Rating')
+plt.show()
+#Category Performance
+# Average rating per category
+category_rating = df.groupby('category')['rating'].mean().sort_values()
+
+# Plot the average rating per category
+plt.figure(figsize=(12, 8))
+category_rating.plot(kind='barh')
+plt.title('Average Rating by Category')
+plt.xlabel('Average Rating')
+plt.ylabel('Category')
+plt.show()
+
+# Total sales per category
+category_sales = df.groupby('category')['discounted_price'].sum().sort_values()
+
+# Plot the total sales per category
+plt.figure(figsize=(12, 8))
+category_sales.plot(kind='barh')
+plt.title('Total Sales by Category')
+plt.xlabel('Total Sales')
+plt.ylabel('Category')
+plt.show()
+
+
+#Time-Series Analysis
+# Time-series analysis of ratings
+df.set_index('date', inplace=True)
+rating_time_series = df['rating'].resample('M').mean()
+
+# Plot the time-series of ratings
+plt.figure(figsize=(10, 6))
+rating_time_series.plot(kind='line')
+plt.title('Average Rating Over Time')
+plt.xlabel('Date')
+plt.ylabel('Average Rating')
+plt.show()
+
